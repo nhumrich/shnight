@@ -1,8 +1,10 @@
 FROM python:3.7
 
-COPY requirements.txt /app/requirements.txt
-RUN python3 -m pip install -r /app/requirements.txt
+COPY pyproject.* /app/
+WORKDIR /app
+RUN python3 -m pip install poetry && poetry config settings.virtualenvs.create false
+RUN poetry install --no-dev
 
 COPY . /app/
 
-CMD ["python3", "/app/run.py"]
+CMD ["python3", "-u", "-OO", "/app/run.py"]
