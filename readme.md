@@ -5,9 +5,9 @@ Secret Hitler Night Phase
 ## Installation
 
 ### Prerequisites. 
-Must have [Docker](https://docs.docker.com/install/) and [docker-compose](https://docs.docker.com/compose/install/) installed.
-
-You also need `git`
+- [Docker](https://docs.docker.com/install/) installed and running. 
+- [docker-compose](https://docs.docker.com/compose/install/) installed.
+- `git`
 
 ### Install & Run
 
@@ -18,6 +18,7 @@ $ docker-compose up --build
 # you might need to add `sudo` before `docker-compose`
 ```
 
+Then just navigate to [localhost](http://localhost). The server is running on port 80, so if you have something else running on 80, you will need to stop it, or update the `docker-compose.yml`.
 
 ## Notes
 This was designed with minimalism in mind. All state data is stored in memory, so restarting the server, docker,
