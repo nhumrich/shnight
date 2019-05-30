@@ -10,6 +10,7 @@ class Game:
         self.players = []
         self.owner_id = owner_id
         self.add_player(owner_id)
+        self.seating = {}
 
     def add_player(self, user_id):
         self.players.append(user_id)
@@ -19,6 +20,11 @@ class Game:
             self.players.remove(user_id)
             if self.owner_id == user_id and len(self.players) > 0:
                 self.owner_id = random.choice(self.players)
+
+    def get_seat(self, user_id):
+        if self.status != 'closed':
+            return 0
+        return self.seating[user_id]
 
     def get_role(self, user_id):
         if user_id == self.hitler:
@@ -34,6 +40,13 @@ class Game:
         self.hitler = None
         self.fascists = []
         self.status = 'open'
+
+    def generate_seating(self):
+        players = copy(self.players)
+        for idx in range(len(players)):
+            selection = random.choice(players)
+            self.seating[selection] = idx
+            players.remove(selection)
 
     def generate_roles(self):
         self.hitler = None

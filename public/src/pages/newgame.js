@@ -11,7 +11,7 @@ class Home extends Component {
     }
     newGame(new_name) {
         if (new_name === '') return null;
-        axios.post('http://localhost:8080/api/new ', {user_name: new_name}).then(
+        axios.post('/api/new ', {user_name: new_name}).then(
             response => {
                 let new_state = {
                     'game_id': response.data.game_id,

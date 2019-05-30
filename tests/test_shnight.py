@@ -72,6 +72,10 @@ def test_game():
     assert len(g.fascists) == 3
     assert len(g.players) == 10
 
+    # test seating chart
+    g.generate_seating()
+    assert len(g.seating) == 10
+
 
 def test_version():
     assert __version__ == '0.1.0'

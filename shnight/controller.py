@@ -95,6 +95,7 @@ async def start_game(request):
     if game is None or game.owner_id != user_id:
         return web.HTTPUnauthorized()
     game.generate_roles()
+    game.generate_seating()
     return web.HTTPNoContent()
 
 
@@ -118,7 +119,8 @@ async def _get_players_names(game, user_id):
         _players.append({
             'id': player_id,
             'name': players[player_id].name,
-            'role': game.get_role(player_id) if can_see_roles else 0
+            'role': game.get_role(player_id) if can_see_roles else 0,
+            'seat': game.get_seat(player_id)
         })
     return _players
 

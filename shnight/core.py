@@ -22,4 +22,4 @@ def main():
     for route in list(app.router.routes()):
         cors.add(route)
     app.on_startup.append(on_startup)
-    web.run_app(app)
+    web.run_app(app, port=3988)

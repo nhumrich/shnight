@@ -17,7 +17,7 @@ class Join extends Component {
         game_id = parseInt(game_id)
         this.setState({'join_error_message': ''})
         if (Number.isInteger(parseInt(game_id)) && game_id > 100000 && game_id <= 999999) {
-            axios.post('http://localhost:8080/api/join ', {game_id: game_id, user_name: user}).then(
+            axios.post('/api/join ', {game_id: game_id, user_name: user}).then(
                 response => {
                     if (response.data.exists === true) {
                         let new_state = {

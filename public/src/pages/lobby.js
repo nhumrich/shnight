@@ -20,7 +20,7 @@ class Lobby extends Component {
     }
     registerEE(userId) {
         this.setState({'sse': null})
-        sse = new EventSource('http://localhost:8080/api/events?user='+userId)
+        sse = new EventSource('/api/events?user='+userId)
         this.setState({'sse': sse})
         sse.onmessage = e => {
             if (this._isMounted === true) {
@@ -46,21 +46,21 @@ class Lobby extends Component {
             alert('Not enough players to begin.')
             return
         }
-        axios.get('http://localhost:8080/api/start/'+this.state.game_id+'?user='+this.state.user_id).then(
+        axios.get('/api/start/'+this.state.game_id+'?user='+this.state.user_id).then(
             response => {
                 this.loadState()
             }
         )
     }
     endGame() {
-        axios.get('http://localhost:8080/api/end/'+this.state.game_id+'?user='+this.state.user_id).then(
+        axios.get('/api/end/'+this.state.game_id+'?user='+this.state.user_id).then(
             response => {
                 this.loadState()
             }
         )
     }
     leaveGame() {
-        axios.post('http://localhost:8080/api/leave', {user_id: this.state.user_id, game_id: this.state.game_id}).then(
+        axios.post('/api/leave', {user_id: this.state.user_id, game_id: this.state.game_id}).then(
             response => {
                 localStorage.removeItem('app_state')
                 this.props.history.push('/')
@@ -77,7 +77,7 @@ class Lobby extends Component {
             'user_id': game_state.user_id,
             'game_id': game_state.game_id
         })
-        axios.get('http://localhost:8080/api/game_state/'+game_state.game_id+'?user_id='+game_state.user_id).then(
+        axios.get('/api/game_state/'+game_state.game_id+'?user_id='+game_state.user_id).then(
                     response => {
                         let d = response.data
                         let i;
@@ -161,11 +161,14 @@ class Lobby extends Component {
                 </div>
                 ) : ''}
 
-            { this.state.status === 'closed' ? '' : (
-            <div className="leave_button">
-               <button onClick={evt => this.leaveGame()}>Leave</button>
-            </div>
-                )}
+            { this.state.status === 'closed' ? <div>
+                <p>Seating:</p>
+                {this.state.users_in_lobby.sort((a, b) => (a.seat > b.seat) ? 1 : -1).map((usr, idx) => {
+                    return <div key={idx}>{usr.seat + 1} - {usr.name}</div>
+                })}
+            </div> : <div className="leave_button">
+                <button onClick={evt => this.leaveGame()}>Leave</button>
+            </div>}
         </div>
     }
 }

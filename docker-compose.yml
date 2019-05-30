@@ -8,11 +8,11 @@ services:
     working_dir: /app/
     command: python run.py
   frontend:
-    image: node:8.9
-    command: sh entrypoint.sh
+    build: ./public
     working_dir: /frontend
     volumes:
       - ./public/:/frontend
+    command: cp -ar /app/build/. /frontend/build
   nginx:
     image: nginx:latest
     ports:
@@ -22,3 +22,4 @@ services:
       - ./public/build:/var/www/frontend # maps frontend build inside nginx
     depends_on:
       - backend
+      - frontend

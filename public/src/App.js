@@ -12,7 +12,7 @@ const customHistory = createBrowserHistory();
 
 class App extends Component {
     gameExists(gameId) {
-        return axios.post('http://localhost:8080/api/game_exists', {'game_id': gameId})
+        return axios.post('/api/game_exists', {'game_id': gameId})
     }
 
     checkSessionStarted() {
