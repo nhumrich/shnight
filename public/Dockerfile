@@ -9,6 +9,6 @@ ENV PATH /app/node_modules/.bin:$PATH
 
 # install and cache app dependencies
 COPY . /app
-RUN npm install --silent
+RUN npm install
 RUN yarn build
 RUN echo 'done'
