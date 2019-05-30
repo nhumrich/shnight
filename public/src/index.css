@@ -1,0 +1,14 @@
+body {
+  background: #E4643A;
+  background: url(http://api.thumbr.it/whitenoise-363x370.png?background=e4653aff&noise=8f3b1f&density=24&opacity=31);
+  margin: 0;
+  font-family: 'Allerta Stencil', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #FFFFFF;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}

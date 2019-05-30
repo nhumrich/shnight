@@ -1,0 +1,17 @@
+<html>
+    <body>
+        <script>
+            pid = localStorage.getItem("player_id")
+            if (pid != null) {
+                window.location.href = `/lobby?user=${pid}`;
+            }
+        </script>
+
+        <form action="/new_player" method="post">
+            Name:<br><br>
+            <input type="text" name="name"><br><br><br>
+            <input type="submit" value="Submit">
+
+        </form>
+    </body>
+</html>
