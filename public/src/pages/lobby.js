@@ -48,13 +48,14 @@ class Lobby extends Component {
         }
         axios.get('http://localhost:8080/api/start/'+this.state.game_id+'?user='+this.state.user_id).then(
             response => {
+                this.loadState()
             }
         )
     }
     endGame() {
         axios.get('http://localhost:8080/api/end/'+this.state.game_id+'?user='+this.state.user_id).then(
             response => {
-                console.log(response)
+                this.loadState()
             }
         )
     }
