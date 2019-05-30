@@ -128,7 +128,8 @@ class Lobby extends Component {
         </div>
     }
     canViewRole() {
-        return this.state.user_role === 1  || (this.state.user_role === 2 && this.state.users_in_lobby.length === 5)
+        return this.state.user_role === 1  || (this.state.user_role === 2 &&
+            (this.state.users_in_lobby.length === 6 || this.state.users_in_lobby.length === 5))
     }
     render() {
         return <div className="App">
