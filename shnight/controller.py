@@ -1,8 +1,8 @@
 import asyncio
 import json
 import random
-from aiohttp_sse import sse_response
-from aiohttp import web
+from starlette.responses import StreamingResponse
+from starlette.responses import JSONResponse
 from shnight.game import Game
 from shnight.user import User
 
@@ -21,7 +21,8 @@ async def new_game(request):
         game_number = random.randint(100000, 999999)
 
     games[game_number] = Game(user.id)
-    return web.json_response({
+    user.game_id = game_number
+    return JSONResponse({
             'user_id': user.id,
             'game_id': game_number,
             'owner_id': games[game_number].owner_id,
@@ -38,21 +39,22 @@ async def join_game(request):
 
     if game_number in games:
         game = games[game_number]
+        user.game_id = game_number
         if game.status == 'open' and len(game.players) <= 10:
             game.add_player(user.id)
-            return web.json_response({
+            return JSONResponse({
                 'exists': True,
                 'user_id': user.id,
                 'game_id': game_number,
                 'owner_id': game.owner_id,
                 'players': game.get_players()
             })
-    return web.json_response({'exists': False})
+    return JSONResponse({'exists': False})
 
 
 async def game_state(request):
-    game_id = int(request.match_info.get('game_id'))
-    user_id = request.query.get('user_id')
+    game_id = int(request.path_params.get('game_id'))
+    user_id = request.query_params.get('user_id')
     if game_id in games:
         _players = await _get_players_names(games[game_id], user_id)
         event = {
@@ -60,8 +62,8 @@ async def game_state(request):
             'owner_id': games[game_id].owner_id,
             'status': games[game_id].status
         }
-        return web.json_response(event)
-    return web.json_response({'players': [], 'owner_id': ''})
+        return JSONResponse(event)
+    return JSONResponse({'players': [], 'owner_id': ''})
 
 
 async def game_id_exists(request):
@@ -69,10 +71,10 @@ async def game_id_exists(request):
     game_number = int(data['game_id'])
     if game_number in games:
         game = games[game_number]
-        return web.json_response({
+        return JSONResponse({
             'status': game.status
         })
-    return web.json_response({'status': None})
+    return JSONResponse({'status': None})
 
 
 async def leave_game(request):
@@ -83,30 +85,30 @@ async def leave_game(request):
     game.remove_player(user_id)
     if len(game.players) == 0:
         del game
-    return web.json_response({'success': True})
+    return JSONResponse({'success': True})
 
 
 async def start_game(request):
-    game_id = int(request.match_info.get('game_id'))
-    user_id = request.query.get('user')
+    game_id = int(request.path_params.get('game_id'))
+    user_id = request.query_params.get('user')
     game = games.get(game_id)
     if game.status != 'open':
-        return web.HTTPConflict()
+        return JSONResponse({'error': 'Conflict'}, status_code=409)
     if game is None or game.owner_id != user_id:
-        return web.HTTPUnauthorized()
+        return JSONResponse({'error': 'Not Authorized'}, status_code=401)
     game.generate_roles()
     game.generate_seating()
-    return web.HTTPNoContent()
+    return JSONResponse({}, status_code=204)
 
 
 async def end_game(request):
-    game_id = int(request.match_info.get('game_id'))
-    user_id = request.query.get('user')
+    game_id = int(request.path_params.get('game_id'))
+    user_id = request.query_params.get('user')
     game = games.get(game_id)
     if game.status != 'closed' or user_id != game.owner_id:
-        return web.HTTPConflict()
+        return JSONResponse({'error': 'Conflict'}, status_code=409)
     game.end()
-    return web.HTTPNoContent()
+    return JSONResponse({}, status_code=204)
 
 
 async def _get_players_names(game, user_id):
@@ -119,7 +121,8 @@ async def _get_players_names(game, user_id):
         _players.append({
             'id': player_id,
             'name': players[player_id].name,
-            'role': game.get_role(player_id) if can_see_roles else 0,
+            'role': game.get_role(player_id) if can_see_roles else
+            (2 if requester_role == 2 and player_id == user_id else 0),
             'seat': game.get_seat(player_id)
         })
     return _players
@@ -143,18 +146,30 @@ async def run_always():
                 await player.queue.put(event)
 
 
+def encode(data):
+    message = f"data: {data}"
+    message += "\r\n\r\n"
+    return message.encode("utf-8")
+
+
 async def events(request):
-    user_id = request.query.get('user')
+    user_id = request.query_params.get('user')
     if user_id in players:
-        event_queue = players[user_id].queue
-        async with sse_response(request) as resp:
+        async def event_stream():
             while True:
-                event = await event_queue.get()
-                if event is None:
-                    del players[user_id]
-                    event = 'close'
-                await resp.send(json.dumps(event))
-                event_queue.task_done()
+                _players = await _get_players_names(games[players[user_id].game_id], user_id)
+                event = {
+                    'players': _players,
+                    'owner_id': games[players[user_id].game_id].owner_id,
+                    'status': games[players[user_id].game_id].status
+                }
+                yield encode(json.dumps(event))
+                await asyncio.sleep(1)
 
-
-
+        headers = {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        }
+        return StreamingResponse(event_stream(), headers=headers)
