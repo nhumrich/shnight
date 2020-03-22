@@ -1,25 +1,43 @@
-import asyncio
-from shnight.routes import routes
-from aiohttp import web
-from shnight.controller import run_always
-import aiohttp_cors
+from json import JSONDecodeError
+
+import uvicorn
+from starlette.applications import Starlette
+from starlette.responses import JSONResponse
+
+from shnight import routes
+from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware import Middleware
 
 
-async def on_startup(app):
-    asyncio.create_task(run_always())
+middleware = [
+    Middleware(CORSMiddleware, allow_origins=['*'])
+]
+
+app = Starlette(middleware=middleware)
+
+
+@app.exception_handler(JSONDecodeError)
+async def bad_json(request, exc):
+    return JSONResponse({'reason': 'invalid json', 'details': str(exc)}, status_code=400)
+
+
+@app.exception_handler(404)
+async def serve_index_on_unknown_routes(request, exc):
+    return JSONResponse({'message': 'not found'}, status_code=404)
+
+
+@app.exception_handler(400)
+async def handle_malformed_request(request, exc):
+    return JSONResponse({'message': exc.detail}, status_code=400)
+
+app = routes.registration(app)
 
 
 def main():
-    app = web.Application()
-    app.add_routes(routes)
-    cors = aiohttp_cors.setup(app, defaults={
-        "*": aiohttp_cors.ResourceOptions(
-            allow_credentials=True,
-            expose_headers="*",
-            allow_headers="*",
-        )
-    })
-    for route in list(app.router.routes()):
-        cors.add(route)
-    app.on_startup.append(on_startup)
-    web.run_app(app, port=3988)
+    kwargs = {'reload': True}
+    uvicorn.run('shnight.core:app', host='0.0.0.0', http='h11', port=3988, headers=[('Server', 'shnight')],
+                proxy_headers=True, **kwargs)
+
+
+if __name__ == '__main__':
+    main()
