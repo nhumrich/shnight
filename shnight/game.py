@@ -11,6 +11,24 @@ class Game:
         self.owner_id = owner_id
         self.add_player(owner_id)
         self.seating = {}
+        self.elections = False
+        self.votes = {'ja': [], 'nein': []}
+
+    def toggle_elections(self):
+        self.elections = not self.elections
+        if not self.elections:
+            self.reset_votes()
+
+    def reset_votes(self):
+        self.votes = {'ja': [], 'nein': []}
+
+    def add_vote(self, user_id, user_is_for):
+        if user_id in self.players:
+            if user_id not in self.votes['ja'] and user_id not in self.votes['nein']:
+                if user_is_for:
+                    self.votes['ja'].append(user_id)
+                else:
+                    self.votes['nein'].append(user_id)
 
     def add_player(self, user_id):
         self.players.append(user_id)

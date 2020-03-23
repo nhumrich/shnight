@@ -1,7 +1,8 @@
 from starlette.responses import JSONResponse
 
 from shnight.controller import new_game, start_game, leave_game, \
-    events, join_game, game_id_exists, game_state, end_game
+    events, join_game, game_id_exists, game_state, end_game, toggle_elections, \
+    cast_vote
 
 
 async def homepage(request):
@@ -17,5 +18,7 @@ def registration(app):
     app.add_route('/api/join', join_game, methods=['POST']),
     app.add_route('/api/start/{game_id}', start_game, methods=['GET']),
     app.add_route('/api/end/{game_id}', end_game, methods=['GET']),
+    app.add_route('/api/toggle_elections/{game_id}', toggle_elections, methods=['POST']),
+    app.add_route('/api/cast_vote/{game_id}', cast_vote, methods=['POST']),
     app.add_route('/api/events', events, methods=['GET']),
     return app
