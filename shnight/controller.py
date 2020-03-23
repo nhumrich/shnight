@@ -13,15 +13,24 @@ players = {}
 def _get_players_names(game, user_id):
     _players = []
     requester_role = game.get_role(user_id)
-    can_see_roles = False
-    if requester_role == 1 or (requester_role == 2 and len(game.players) < 7):
-        can_see_roles = True
     for player_id in game.players:
+        _role = 0
+        if requester_role == 2:
+            if player_id == user_id:
+                _role = 2
+            elif player_id in game.fascists:
+                if len(game.players) < 7:
+                    _role = 1
+        elif requester_role == 1:
+            if player_id == user_id or player_id in game.fascists:
+                _role = 1
+            elif player_id == game.hitler:
+                _role = 2
+
         _players.append({
             'id': player_id,
             'name': players[player_id].name,
-            'role': game.get_role(player_id) if can_see_roles else
-            (2 if requester_role == 2 and player_id == user_id else 0),
+            'role': _role,
             'seat': game.get_seat(player_id)
         })
     return _players
