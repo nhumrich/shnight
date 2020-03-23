@@ -1,50 +1,49 @@
-import React, { Component } from 'react';
-import { Router, Route } from "react-router-dom";
-import { createBrowserHistory } from "history";
+import React, { useState, useEffect } from 'react';
+import Game from './components/Game'
+import Setup from './components/Setup'
+import sh_img from './sh.png'
 import './App.css';
 import axios from 'axios';
-import Home from './pages/home'
-import Join from './pages/joingame'
-import New from './pages/newgame'
-import Lobby from './pages/lobby'
+import { Container, Row, Col } from 'react-bootstrap';
 
-const customHistory = createBrowserHistory();
 
-class App extends Component {
-    gameExists(gameId) {
-        return axios.post('/api/game_exists', {'game_id': gameId})
-    }
+function gameExists(gameId) {
+  return axios.post('/api/game_exists', {'game_id': gameId})
+}
 
-    checkSessionStarted() {
-        var game_state = JSON.parse(localStorage.getItem('app_state'));
-        if (game_state !== null) {
-            var game_id = game_state.game_id
-            this.gameExists(game_id).then(response => {
-                if (response.data.status === null) {
-                    localStorage.removeItem('app_state')
-                } else {
-                    customHistory.push('/lobby')
-                }
-            })
+function App() {
+  const [gameLive, setGameLive] = useState(false);
+  const [username, setUsername] = useState();
+  const [userId, setUserId] = useState();
+  const [gameId, setGameId] = useState();
+
+  useEffect(() => {
+    let game_state = JSON.parse(localStorage.getItem('app_state'));
+    if (game_state !== null) {
+      setGameId(game_state.game_id)
+      setUserId(game_state.user_id)
+      setUsername(game_state.username)
+      gameExists(game_state.game_id).then(response => {
+        if (response.data.status === null) {
+          localStorage.removeItem('app_state')
+        } else {
+          setGameLive(true)
         }
+      })
     }
-
-    componentWillMount() {
-        this.checkSessionStarted()
-    }
-
-    render() {
-        return <Router history={customHistory}>
-            <Route path="/" exact component={Home}/>
-            <Route path="/lobby" exact component={() => <Lobby history={customHistory}/> }/>
-            <Route path="/join" exact component={Join}/>
-            <Route path="/new" exact component={New}/>
-        </Router>
-    }
+  }, [])
+  return (
+    <Container fluid>
+      <Row style={{marginTop: '20px'}}>
+        <Col className="text-center"><img alt='logo' style={{width: '120px'}} src={sh_img}/></Col>
+      </Row>
+      <Row style={{marginTop: '20px'}}>
+        <Col className="text-center">{gameLive ?
+          <Game gameId={gameId} username={username} userId={userId} /> :
+          <Setup setGameLive={setGameLive} setGameId={setGameId} userId={userId} gameId={gameId} setUserId={setUserId} username={username} setUsername={setUsername} />}</Col>
+      </Row>
+    </Container>
+  );
 }
 
 export default App;
-
-
-
-
